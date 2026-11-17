@@ -2,8 +2,6 @@
 
 Install one controller in your cluster and every Kubernetes CronJob is monitored by [CronRadar](https://cronradar.com): you hear about the runs that fail, run late, never start, or whose CronJob disappears. No sidecar, no change to your containers and no per-job setup.
 
-**Status: not yet published.** Version 0.1.0 is not yet on GHCR, so the image and chart below do not exist yet. This README describes that release.
-
 The controller watches `batch/v1` CronJobs and Jobs with read-only access. It declares every CronJob to CronRadar with its schedule, and reports each Job a CronJob creates as a start, a completion or a failure.
 
 ## Install
