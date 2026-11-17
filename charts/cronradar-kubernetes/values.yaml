@@ -1,0 +1,41 @@
+image:
+  repository: ghcr.io/notinferred/cronradar-kubernetes
+  # Defaults to the chart's appVersion.
+  tag: ""
+  # A digest such as sha256:... pins the image and takes precedence over the tag.
+  digest: ""
+  pullPolicy: IfNotPresent
+
+# The Secret holding the CronRadar API key. The chart never creates it, so the key stays
+# out of Helm values and release history.
+apiKey:
+  existingSecret: cronradar-api-key
+  key: api-key
+
+# Namespaces to watch. Empty watches every namespace through a ClusterRole; a list
+# grants a Role in each listed namespace only.
+namespaces: []
+
+# How often the full CronJob registry is synced, in addition to every change. At least 1m.
+syncInterval: 5m
+
+# The sync source. Give each cluster sharing one CronRadar application its own.
+source: kubernetes
+
+# The CronRadar application's time zone. CronJobs scheduled in another zone are logged as warnings.
+timeZone: UTC
+
+resources:
+  requests:
+    cpu: 10m
+    memory: 32Mi
+  limits:
+    memory: 128Mi
+
+podAnnotations: {}
+podLabels: {}
+nodeSelector: {}
+tolerations: []
+affinity: {}
+priorityClassName: ""
+imagePullSecrets: []

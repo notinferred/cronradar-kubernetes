@@ -1,0 +1,17 @@
+apiVersion: v2
+name: cronradar-kubernetes
+description: Monitor every Kubernetes CronJob with CronRadar, with no per-job setup.
+type: application
+version: 0.1.0
+appVersion: "0.1.0"
+kubeVersion: ">=1.21.0-0"
+home: https://cronradar.com
+sources:
+  - https://github.com/notinferred/cronradar-kubernetes
+keywords:
+  - cron
+  - cronjob
+  - monitoring
+maintainers:
+  - name: CronRadar
+    url: https://cronradar.com

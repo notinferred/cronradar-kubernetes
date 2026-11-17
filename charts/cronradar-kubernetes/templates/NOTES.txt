@@ -1,0 +1,7 @@
+cronradar-kubernetes is watching {{ if empty .Values.namespaces }}every namespace{{ else }}{{ join ", " .Values.namespaces }}{{ end }}.
+
+Check that it loaded the CronJobs and synced them:
+
+  kubectl logs -n {{ .Release.Namespace }} deployment/{{ include "cronradar-kubernetes.name" . }} | grep "registry synced"
+
+Every CronJob appears in your CronRadar application. Opt one out with the annotation cronradar.com/skip: "true".

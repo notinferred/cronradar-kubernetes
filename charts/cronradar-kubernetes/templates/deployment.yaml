@@ -1,0 +1,89 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "cronradar-kubernetes.name" . }}
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "cronradar-kubernetes.labels" . | nindent 4 }}
+spec:
+  # One replica: a second would report every run twice.
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      {{- include "cronradar-kubernetes.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        {{- include "cronradar-kubernetes.selectorLabels" . | nindent 8 }}
+        {{- with .Values.podLabels }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
+      {{- with .Values.podAnnotations }}
+      annotations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+    spec:
+      serviceAccountName: {{ include "cronradar-kubernetes.name" . }}
+      {{- with .Values.priorityClassName }}
+      priorityClassName: {{ . }}
+      {{- end }}
+      {{- with .Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 65532
+        runAsGroup: 65532
+        seccompProfile:
+          type: RuntimeDefault
+      containers:
+        - name: cronradar-kubernetes
+          image: {{ include "cronradar-kubernetes.image" . }}
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          env:
+            - name: CRONRADAR_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: {{ required "apiKey.existingSecret is required" .Values.apiKey.existingSecret }}
+                  key: {{ .Values.apiKey.key }}
+            - name: CRONRADAR_NAMESPACES
+              value: {{ join "," .Values.namespaces | quote }}
+            - name: CRONRADAR_SYNC_INTERVAL
+              value: {{ .Values.syncInterval | quote }}
+            - name: CRONRADAR_SOURCE
+              value: {{ .Values.source | quote }}
+            - name: CRONRADAR_TIME_ZONE
+              value: {{ .Values.timeZone | quote }}
+          ports:
+            - name: health
+              containerPort: 8080
+          livenessProbe:
+            httpGet:
+              path: /healthz
+              port: health
+          readinessProbe:
+            httpGet:
+              path: /readyz
+              port: health
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities:
+              drop: ["ALL"]
+          resources:
+            {{- toYaml .Values.resources | nindent 12 }}
+      {{- with .Values.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}

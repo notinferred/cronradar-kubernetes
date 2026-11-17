@@ -1,0 +1,62 @@
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: {{ include "cronradar-kubernetes.name" . }}
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "cronradar-kubernetes.labels" . | nindent 4 }}
+{{- if empty .Values.namespaces }}
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: {{ include "cronradar-kubernetes.name" . }}
+  labels:
+    {{- include "cronradar-kubernetes.labels" . | nindent 4 }}
+rules:
+  {{- include "cronradar-kubernetes.rules" . | nindent 2 }}
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: {{ include "cronradar-kubernetes.name" . }}
+  labels:
+    {{- include "cronradar-kubernetes.labels" . | nindent 4 }}
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: {{ include "cronradar-kubernetes.name" . }}
+subjects:
+  - kind: ServiceAccount
+    name: {{ include "cronradar-kubernetes.name" . }}
+    namespace: {{ .Release.Namespace }}
+{{- else }}
+{{- range .Values.namespaces }}
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: {{ include "cronradar-kubernetes.name" $ }}
+  namespace: {{ . }}
+  labels:
+    {{- include "cronradar-kubernetes.labels" $ | nindent 4 }}
+rules:
+  {{- include "cronradar-kubernetes.rules" $ | nindent 2 }}
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: {{ include "cronradar-kubernetes.name" $ }}
+  namespace: {{ . }}
+  labels:
+    {{- include "cronradar-kubernetes.labels" $ | nindent 4 }}
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: {{ include "cronradar-kubernetes.name" $ }}
+subjects:
+  - kind: ServiceAccount
+    name: {{ include "cronradar-kubernetes.name" $ }}
+    namespace: {{ $.Release.Namespace }}
+{{- end }}
+{{- end }}
